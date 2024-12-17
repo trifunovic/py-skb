@@ -1,0 +1,26 @@
+fetch("http://127.0.0.1:8080/search/?query=Who is the coolest kid?", {
+  "headers": {
+    "accept": "application/json",
+    "accept-language": "en-US,en;q=0.9,hr;q=0.8",
+    "sec-ch-ua": "\"Google Chrome\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "Authorization": "my-secure-api-key" // Replace with your actual API key
+  },
+  "referrer": "http://127.0.0.1:8080/docs",
+  "referrerPolicy": "strict-origin-when-cross-origin",
+  "method": "GET",
+  "mode": "cors",
+  "credentials": "omit"
+})
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => console.log("Response:", data))
+  .catch(error => console.error("Error:", error));

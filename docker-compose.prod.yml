@@ -1,0 +1,44 @@
+version: "3.8"
+
+services:
+  fastapi-app:
+    image: pyskbregistry.azurecr.io/py-skb:prod
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        # Inject Key Vault name during the build phase
+        AZURE_KEY_VAULT_NAME: your-key-vault-name
+    ports:
+      - "80:8000"  # Expose app on HTTP port 80
+    env_file:
+      - ./env/.env.prod  # Environment-specific configuration
+    depends_on:
+      - redis
+    volumes:
+      - app-data:/app  # Persistent data storage for the app
+    healthcheck:  # Add health check for the FastAPI service
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
+    restart: always  # Automatically restart on failure
+
+  redis:
+    image: redis:7.0
+    ports:
+      - "6379:6379"  # Expose Redis on default port
+    volumes:
+      - redis-data:/data  # Persistent Redis storage
+    healthcheck:  # Add health check for Redis service
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    restart: always  # Automatically restart on failure
+
+volumes:
+  app-data:  # Persistent volume for app data
+  redis-data:  # Persistent volume for Redis data

@@ -1,0 +1,72 @@
+# Python compiled files
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Virtual environment
+venv/
+.env
+env/
+
+# Logs and debugging
+*.log
+*.bak
+
+# System-specific files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE-specific files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+
+# Python dependency directories
+*.egg-info/
+.eggs/
+build/
+dist/
+*.egg
+*.whl
+
+# Cache files
+.cache/
+.pytest_cache/
+
+# Coverage reports
+.coverage
+htmlcov/
+coverage.xml
+
+# Generated documentation
+docs/_build/
+
+# Temporary and backup files
+*.tmp
+*.temp
+*.swp
+*.bak
+~$*
+
+# Azure specific files
+*.azure/
+
+# Node.js/Angular dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Pinecone-related cache or debug
+pinecone_debug.log
+
+# Project-specific files
+py-skb/.env.local
+py-skb/redis-data/dump.rdb

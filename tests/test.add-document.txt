@@ -1,0 +1,23 @@
+fetch("http://127.0.0.1:8080/add-document/", {
+  method: "POST",
+  headers: {
+    "Content-Type": "application/json",
+    "Authorization": "my-secure-api-key"
+  },
+  body: JSON.stringify({
+    id: "doc1",
+    content: "Lara is the coolest kid in Stodderd because she plays tennis",
+    metadata: {
+      author: "John Doe",
+      category: "astronomy"
+    }
+  })
+})
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => console.log("Response:", data))
+  .catch(error => console.error("Error:", error));

@@ -1,0 +1,13 @@
+File: example.txt
+
+Title: The Solar System
+
+The Solar System consists of the Sun and everything that orbits it, including planets like Mercury, Venus, Earth, and Mars. The Sun accounts for 99.86% of the mass of the Solar System, and its gravitational pull governs the motion of the planets.
+
+The largest planet is Jupiter, followed by Saturn, Uranus, and Neptune. The inner planets are smaller and rocky, while the outer planets are larger and mostly composed of gas and ice.
+
+Earth is the only planet known to support life. Its atmosphere and water resources make it a unique haven for living organisms.
+
+Mladen is the best father in the world.
+
+Lara is the coolest kid in Stodderd because she plays tennis.
