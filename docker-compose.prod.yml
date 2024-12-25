@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   fastapi-app:
     image: pyskbregistry.azurecr.io/py-skb:prod
@@ -17,12 +15,14 @@ services:
       - redis
     volumes:
       - app-data:/app  # Persistent data storage for the app
-    healthcheck:  # Add health check for the FastAPI service
+    healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
+    environment:
+      PYTHONPATH: /app
     command: ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
     restart: always  # Automatically restart on failure
 
@@ -32,7 +32,7 @@ services:
       - "6379:6379"  # Expose Redis on default port
     volumes:
       - redis-data:/data  # Persistent Redis storage
-    healthcheck:  # Add health check for Redis service
+    healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
@@ -40,5 +40,5 @@ services:
     restart: always  # Automatically restart on failure
 
 volumes:
-  app-data:  # Persistent volume for app data
-  redis-data:  # Persistent volume for Redis data
+  app-data:
+  redis-data:

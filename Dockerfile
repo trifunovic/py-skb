@@ -24,16 +24,17 @@ RUN apt-get purge -y build-essential g++ gcc && apt-get autoremove -y
 # Stage 2: Final runtime image
 FROM python:3.11-slim
 
-WORKDIR /app
+WORKDIR /app/app
 
 # Set environment variables for production
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app
 
-# Copy only the necessary files from the builder stage
+# Copy the necessary files from the builder stage
 COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
 COPY --from=builder /usr/local/bin /usr/local/bin
-COPY . .
+COPY ./app /app/app
 
 # Expose the application port
 EXPOSE 8000
