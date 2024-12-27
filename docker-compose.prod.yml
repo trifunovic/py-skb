@@ -5,14 +5,13 @@ services:
       context: .
       dockerfile: Dockerfile
       args:
-        # Inject Key Vault name during the build phase
-        AZURE_KEY_VAULT_NAME: your-key-vault-name
+        AZURE_KEY_VAULT_NAME: your-key-vault-name  # Inject Key Vault name
     ports:
       - "80:8000"  # Expose app on HTTP port 80
     env_file:
       - ./env/.env.prod  # Environment-specific configuration
     depends_on:
-      - redis
+      - redis  # Ensure Redis starts before FastAPI app
     volumes:
       - app-data:/app  # Persistent data storage for the app
     healthcheck:
