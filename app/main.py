@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_limiter import FastAPILimiter
 import redis.asyncio as redis
-from config import Config
+from app.config import Config
 from endpoints.add_document import router as add_document_router
 from endpoints.search import router as search_router
 from endpoints.rebuild_index import router as rebuild_index_router
