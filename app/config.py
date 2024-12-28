@@ -1,4 +1,4 @@
-from services.secrets_service import SecretsService
+from app.services.secrets_service import SecretsService
 import os
 
 class Config:

@@ -1,7 +1,6 @@
 from fastapi import APIRouter, HTTPException, Request
-from config import Config
-from services.embeding_service import EmbeddingService
-from utils.pinecone_utils import get_pinecone_index
+from app.services.embeding_service import EmbeddingService
+from app.utils.pinecone_utils import get_pinecone_index
 import logging
 
 embeding_service = EmbeddingService()

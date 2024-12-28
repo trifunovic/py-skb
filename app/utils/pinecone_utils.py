@@ -1,6 +1,8 @@
 from pinecone import Pinecone, ServerlessSpec
-from config import config
-from services.embeding_service import EmbeddingService
+from app.config import Config
+from app.services.embeding_service import EmbeddingService
+
+config = Config()
 
 # Initialize Pinecone client
 pc = Pinecone(api_key=config.pinecone_api_key)

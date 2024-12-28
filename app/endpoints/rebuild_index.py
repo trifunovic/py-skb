@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from services.embeding_service import EmbeddingService  # Relative import
-from utils.pinecone_utils import get_pinecone_index
+from app.services.embeding_service import EmbeddingService  # Relative import
+from app.utils.pinecone_utils import get_pinecone_index
 import logging
 
 logger = logging.getLogger(__name__)

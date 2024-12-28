@@ -3,13 +3,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi_limiter import FastAPILimiter
 import redis.asyncio as redis
 from app.config import Config
-from endpoints.add_document import router as add_document_router
-from endpoints.search import router as search_router
-from endpoints.rebuild_index import router as rebuild_index_router
-from endpoints.test_pinecone import router as test_pinecone_router
-from endpoints.test_redis import router as test_redis_router
-from endpoints.test_openai import router as test_openai_router
-from endpoints.test_config import router as test_config_router
+from app.endpoints.add_document import router as add_document_router
+from app.endpoints.search import router as search_router
+from app.endpoints.rebuild_index import router as rebuild_index_router
+from app.endpoints.test_pinecone import router as test_pinecone_router
+from app.endpoints.test_redis import router as test_redis_router
+from app.endpoints.test_openai import router as test_openai_router
+from app.endpoints.test_config import router as test_config_router
 from dotenv import load_dotenv
 import os
 

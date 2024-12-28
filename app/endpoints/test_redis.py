@@ -1,9 +1,10 @@
 import os
 from fastapi import APIRouter, HTTPException
 import redis.asyncio as redis
-from config import config
+from app.config import Config
 
 router = APIRouter()
+config = Config()
 
 # Initialize Redis client globally
 redis_client = None

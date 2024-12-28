@@ -1,8 +1,9 @@
 from fastapi import APIRouter, HTTPException
 from pinecone import Pinecone
-from config import config
+from app.config import Config
 
 router = APIRouter()
+config = Config()
 
 @router.get("/test-pinecone")
 async def test_pinecone():

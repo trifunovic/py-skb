@@ -1,8 +1,9 @@
 from fastapi import APIRouter
-from config import config
+from app.config import Config
 import os
 
 router = APIRouter()
+config = Config()
 
 @router.get("/test-config")
 async def test_config():

@@ -1,9 +1,8 @@
 from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
 from fastapi_limiter.depends import RateLimiter
-from config import Config
-from services.embeding_service import EmbeddingService
-from utils.pinecone_utils import get_pinecone_index
+from app.services.embeding_service import EmbeddingService
+from app.utils.pinecone_utils import get_pinecone_index
 import logging
 import traceback
 
