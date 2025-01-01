@@ -14,10 +14,13 @@ services:
     environment:
       PYTHONPATH: /app
       REDIS_HOST: redis  # Set Redis host
+      PINECONE_API_KEY: "${PINECONE_API_KEY}"  # Pass Pinecone API key
+      KNOWLEDGE_API_KEY: "${KNOWLEDGE_API_KEY}"  # Pass Knowledge API key
+      OPENAI_API_KEY: "${OPENAI_API_KEY}"  # Pass OpenAI API key
     volumes:
       - app-data:/app  # Persistent data storage for the app
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]  # Use root endpoint for health check
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]  # Use health endpoint
       interval: 30s
       timeout: 10s
       retries: 3

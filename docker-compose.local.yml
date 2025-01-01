@@ -1,6 +1,8 @@
 services:
   fastapi-app:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     image: pyskb-local
     ports:
       - "8080:8000"  # Map container port 8000 to localhost 8080
@@ -13,7 +15,7 @@ services:
       KNOWLEDGE_API_KEY: "${KNOWLEDGE_API_KEY}"  # Pass Knowledge API key
       OPENAI_API_KEY: "${OPENAI_API_KEY}"  # Pass OpenAI API key
       REDIS_HOST: "redis"  # Set Redis host
-      PYTHONPATH: /app
+      PYTHONPATH: /app  # Ensure correct Python path
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     depends_on:
       - redis  # Ensure Redis starts before FastAPI app
