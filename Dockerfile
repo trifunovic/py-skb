@@ -3,10 +3,6 @@ FROM python:3.11-slim as builder
 
 WORKDIR /app
 
-# Build arguments for environment and Azure Key Vault
-ARG ENVIRONMENT=production
-ENV ENVIRONMENT=${ENVIRONMENT}
-
 # Install system dependencies and pip
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gcc build-essential libffi-dev g++ curl \
