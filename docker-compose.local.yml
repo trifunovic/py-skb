@@ -6,16 +6,14 @@ services:
     image: pyskb-local
     ports:
       - "8080:8000"  # Map container port 8000 to localhost 8080
+    env_file:
+      - ./env/.env.local  # Use env_file like in production
+    environment:
+      ENVIRONMENT: development
+      PYTHONPATH: /app  # Ensure correct Python path
     volumes:
       - ./app:/app  # Mount local app directory for live code updates
-      - ./logs:/app/logs  # Mount logs directory to persist logs
-      - ./env/.env.local:/app/.env.local  # Mount .env.local into the container
-    environment:
-      PINECONE_API_KEY: "${PINECONE_API_KEY}"  # Pass Pinecone API key
-      KNOWLEDGE_API_KEY: "${KNOWLEDGE_API_KEY}"  # Pass Knowledge API key
-      OPENAI_API_KEY: "${OPENAI_API_KEY}"  # Pass OpenAI API key
-      REDIS_HOST: "redis"  # Set Redis host
-      PYTHONPATH: /app  # Ensure correct Python path
+      - ./logs:/app/logs  # Mount logs directory to persist logs (local only)
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     depends_on:
       - redis  # Ensure Redis starts before FastAPI app
