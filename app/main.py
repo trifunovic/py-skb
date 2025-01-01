@@ -13,12 +13,13 @@ from app.endpoints.test_config import router as test_config_router
 from dotenv import load_dotenv
 import os
 
-# Load environment variables from .env.local
+# Load environment variables from .env.local if available
 dotenv_path = os.path.join(os.path.dirname(__file__), ".env.local")
 if os.path.exists(dotenv_path):
-    load_dotenv(dotenv_path)
+    load_dotenv(dotenv_path, override=False)  # Prevent overriding system variables
+    print(f"Loaded environment variables from {dotenv_path}")
 else:
-    print(f"Warning: {dotenv_path} not found. Environment variables may not load as expected.")
+    print(f"Warning: {dotenv_path} not found. Using system environment variables.")
 
 # Load configuration
 config = Config()
@@ -51,7 +52,14 @@ async def startup():
         print(f"Connected to Redis at {redis_url}")
     except Exception as e:
         print(f"Failed to connect to Redis: {e}")
-    await FastAPILimiter.init(redis_client)
+        raise RuntimeError("Redis connection failed. Check your Redis configuration.")
+
+    try:
+        await FastAPILimiter.init(redis_client)  # Initialize FastAPI rate limiting
+        print("FastAPI Limiter initialized.")
+    except Exception as e:
+        print(f"Failed to initialize FastAPI Limiter: {e}")
+        raise RuntimeError("Rate limiting setup failed.")
 
 # Register routers
 app.include_router(add_document_router)
@@ -65,3 +73,17 @@ app.include_router(test_config_router)  # Separate test-config endpoint
 @app.get("/")
 async def read_root():
     return {"message": "Welcome to the Pinecone-Powered Knowledge Base!"}
+
+@app.get("/health")
+async def health_check():
+    return {"status": "ok"}
+
+@app.on_event("shutdown")
+async def shutdown():
+    """
+    Cleanup tasks when the application shuts down.
+    """
+    global redis_client
+    if redis_client:
+        await redis_client.close()
+        print("Redis client connection closed.")

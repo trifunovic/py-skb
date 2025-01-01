@@ -3,10 +3,11 @@ FROM python:3.11-slim as builder
 
 WORKDIR /app
 
-# Build argument for Azure Key Vault
+# Build arguments for environment and Azure Key Vault
+ARG ENVIRONMENT=production
 ARG AZURE_KEY_VAULT_NAME
-# Optional: Use build argument in the environment
-ENV AZURE_KEY_VAULT_NAME=$AZURE_KEY_VAULT_NAME
+ENV ENVIRONMENT=${ENVIRONMENT}
+ENV AZURE_KEY_VAULT_NAME=${AZURE_KEY_VAULT_NAME}
 
 # Install system dependencies and pip
 RUN apt-get update && apt-get install -y --no-install-recommends \
@@ -15,8 +16,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && pip install --upgrade pip
 
 # Copy and install Python dependencies
-COPY requirements.txt .
+COPY requirements.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Install development-only dependencies if in local environment
+RUN if [ "$ENVIRONMENT" = "development" ]; then pip install watchdog; fi
 
 # Stage 2: Final runtime image
 FROM python:3.11-slim
@@ -27,7 +31,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y --no-install-recommends curl \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Set environment variables for production
+# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 ENV PYTHONPATH=/app
@@ -36,6 +40,10 @@ ENV PYTHONPATH=/app
 COPY --from=builder /usr/local/lib/python3.11 /usr/local/lib/python3.11
 COPY --from=builder /usr/local/bin /usr/local/bin
 COPY . /app
+
+# Copy environment-specific configuration
+COPY ./env/.env.local /app/.env.local
+COPY ./env/.env.prod /app/.env.prod
 
 # Expose the application port
 EXPOSE 8000
