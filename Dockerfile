@@ -5,7 +5,6 @@ WORKDIR /app
 
 # Build arguments for environment and Azure Key Vault
 ARG ENVIRONMENT=production
-ARG AZURE_KEY_VAULT_NAME
 ENV ENVIRONMENT=${ENVIRONMENT}
 
 # Install system dependencies and pip

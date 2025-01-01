@@ -7,16 +7,16 @@ services:
     ports:
       - "8080:8000"  # Map container port 8000 to localhost 8080
     env_file:
-      - ./env/.env.local  # Use env_file like in production
+      - ./env/.env.local  # Use .env.local file to load environment variables
     environment:
-      ENVIRONMENT: development
-      PYTHONPATH: /app  # Ensure correct Python path
+      ENVIRONMENT: development  # Explicitly specify the environment
+      PYTHONPATH: /app  # Ensure the correct Python path for the application
     volumes:
-      - ./app:/app  # Mount local app directory for live code updates
-      - ./logs:/app/logs  # Mount logs directory to persist logs (local only)
+      - ./app:/app  # Mount the local app directory for live code updates
+      - ./logs:/app/logs  # Mount the logs directory for persistent logging (local only)
     command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
     depends_on:
-      - redis  # Ensure Redis starts before FastAPI app
+      - redis  # Ensure Redis starts before the FastAPI app
     restart: always  # Automatically restart the app if it crashes
 
   redis:
