@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 import openai
-from app.config import Config
+from src.config import Config
 
 router = APIRouter()
 config = Config()

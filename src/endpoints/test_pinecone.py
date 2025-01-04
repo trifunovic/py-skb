@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from pinecone import Pinecone
-from app.config import Config
+from src.config import Config
 
 router = APIRouter()
 config = Config()

@@ -1,7 +1,7 @@
 import os
 from fastapi import APIRouter, HTTPException
 import redis.asyncio as redis
-from app.config import Config
+from src.config import Config
 
 router = APIRouter()
 config = Config()

@@ -1,6 +1,6 @@
 from pinecone import Pinecone, ServerlessSpec
-from app.config import Config
-from app.services.embeding_service import EmbeddingService
+from src.config import Config
+from src.services.embeding_service import EmbeddingService
 
 config = Config()
 

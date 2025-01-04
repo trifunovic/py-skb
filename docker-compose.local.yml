@@ -12,9 +12,9 @@ services:
       ENVIRONMENT: development  # Explicitly specify the environment
       PYTHONPATH: /app  # Ensure the correct Python path for the application
     volumes:
-      - ./app:/app/app  # Mount the local app directory for live code updates
+      - ./src:/app/src  # Updated to mount the "src" folder instead of "app"
       - ./logs:/app/logs  # Mount the logs directory for persistent logging (local only)
-    command: ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]
+    command: ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000", "--reload"]  # Updated "app.main" to "src.main"
     depends_on:
       - redis  # Ensure Redis starts before the FastAPI app
     restart: always  # Automatically restart the app if it crashes

@@ -1,41 +1,46 @@
+version: "3.8"
+
 services:
   fastapi-app:
-    image: pyskbregistry.azurecr.io/py-skb:prod
+    image: pyskbregistry.azurecr.io/py-skb:prod  # Production image from Azure Container Registry
     build:
       context: .
       dockerfile: Dockerfile
       args:
         ENVIRONMENT: production
-        AZURE_KEY_VAULT_NAME: skb-keyvault
+        AZURE_KEY_VAULT_NAME: skb-keyvault  # Azure Key Vault name passed as an argument
     ports:
       - "80:8000"  # Expose FastAPI app on HTTP port 80
     env_file:
-      - ./env/.env.prod  # Use env_file for production
+      - ./env/.env.prod  # Use environment variables for production
     environment:
-      PYTHONPATH: /app  # Explicitly define PYTHONPATH
-      REDIS_HOST: redis  # Explicit override if needed
+      PYTHONPATH: /app  # Explicitly define Python path for app imports
+      REDIS_HOST: redis  # Redis service hostname
+    volumes:
+      - ./src:/app/src  # Updated to mount the "src" folder instead of "app"
+      - ./logs:/app/logs  # Mount the logs folder for persistent logging
     depends_on:
       - redis  # Ensure Redis starts before FastAPI app
-    restart: always  # Automatically restart the app if it crashes
+    restart: always  # Automatically restart the service if it crashes
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]  # Health check for the FastAPI app
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 30s
 
   redis:
-    image: redis:7.0
+    image: redis:7.0  # Redis image
     ports:
       - "6379:6379"  # Expose Redis on the default port
     volumes:
       - redis-data:/data  # Persistent Redis storage
-    restart: always  # Automatically restart on failure
+    restart: always  # Automatically restart if it crashes
     healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
+      test: ["CMD", "redis-cli", "ping"]  # Health check to ensure Redis is reachable
       interval: 10s
       timeout: 5s
       retries: 3
 
 volumes:
-  redis-data:
+  redis-data:  # Redis data storage volume for persistence
