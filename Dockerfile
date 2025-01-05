@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && apt-get clean && rm -rf /var/lib/apt/lists/* \
     && pip install --upgrade pip
 
-# Install Python dependencies
+# Copy the requirements and install dependencies
 COPY requirements.txt ./requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt \
     && apt-get purge -y gcc build-essential g++ \
@@ -26,7 +26,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Set environment variables for Python behavior
+# Declare and pass build argument
+ARG ENVIRONMENT
+ENV ENVIRONMENT=${ENVIRONMENT}
+
+# Set other environment variables for Python behavior
 ENV PYTHONDONTWRITEBYTECODE=1  
 ENV PYTHONUNBUFFERED=1         
 ENV PYTHONPATH=/app            
@@ -38,8 +42,11 @@ COPY --from=builder /usr/local/bin /usr/local/bin
 # Copy app source code
 COPY ./src /app/src
 
-# Redis dependency (redundant but safe if omitted in requirements.txt)
+# Redis dependency (if needed)
 RUN pip install --no-cache-dir redis
+
+# Debug output
+RUN echo "Environment: $ENVIRONMENT"
 
 # Expose the port and run the application
 EXPOSE 8000
