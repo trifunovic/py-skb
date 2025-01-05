@@ -3,6 +3,9 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+      args:
+        ENVIRONMENT: development
+        AZURE_KEY_VAULT_NAME: skb-keyvault  # Azure Key Vault name passed as an argument
     image: pyskb-local
     ports:
       - "8080:8000"  # Map container port 8000 to localhost 8080
