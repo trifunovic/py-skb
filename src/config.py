@@ -66,20 +66,24 @@ class Config:
     # **Redis Configuration**
     @property
     def redis_host(self):
-        return self._get_secret("redis-host", fallback_env="REDIS_HOST", default="localhost")
+        return self._get_secret("redis-host", fallback_env="REDIS_HOST", default="redis")
 
     @property
     def redis_port(self):
-        return self._get_secret("redis-port", fallback_env="REDIS_PORT", default="6380")
+        return self._get_secret("redis-port", fallback_env="REDIS_PORT", default="6379")
 
     @property
+    def redis_use_ssl(self):
+        return self._get_secret("redis-use-ssl", fallback_env="REDIS_USE_SSL", default="False").lower() in ["true", "1", "yes"]
+    
+    @property
     def redis_access_key(self):
-        return self._get_secret("redis-access-key", fallback_env="REDIS_ACCESS_KEY")
+        return self._get_secret("redis-access-key", fallback_env="REDIS_ACCESS_KEY", default=None)
 
     # **CORS Allowed Origins**
     @property
     def allowed_origins(self):
-        allowed_origins = self._get_secret("allowed-origins", fallback_env="ALLOWED_ORIGINS", default="http://localhost:8080")
+        allowed_origins = self._get_secret("allowed-origins", fallback_env="ALLOWED_ORIGINS", default="*")
         return allowed_origins.split(",")
 
     # **Model Configuration**
@@ -99,10 +103,24 @@ class Config:
     @property
     def log_level(self):
         return self._get_secret("log-level", fallback_env="LOG_LEVEL", default="info")
+    
+    @property
+    def app_port(self):
+        return int(self._get_secret("app-port", fallback_env="APP_PORT", default="8000"))
+
+    # **Rate Limiting Configuration**
+    @property
+    def search_rate_limit(self):
+        return int(self._get_secret("search-rate-limit", fallback_env="SEARCH_RATE_LIMIT", default="10"))
+
+    @property
+    def rate_limit_window_seconds(self):
+        return int(self._get_secret("rate-limit-window-seconds", fallback_env="RATE_LIMIT_WINDOW_SECONDS", default="60"))
 
     # **Print configuration values for debugging**
     def print_config(self):
-        print("\n=== Loaded Configuration ===")
+        print("\n==================== Loaded Configuration ======================")    
+        print(f"APP Port: {self.app_port}")
         print(f"Azure Key Vault Name: {self._key_vault_name or 'Not Set'}")
         print(f"Redis Host: {self.redis_host}")
         print(f"Redis Port: {self.redis_port}")
@@ -120,7 +138,8 @@ class Config:
         print(f"Model Type: {self.model_type}")
         print(f"Debug Mode: {self.debug_mode}")
         print(f"Log Level: {self.log_level}")
-        print("============================\n")
+        print(f"Search Rate Limit: {self.search_rate_limit} requests per {self.rate_limit_window_seconds} seconds")
+        print("================================================================\n")
 
 # Instantiate config globally
 config = Config()

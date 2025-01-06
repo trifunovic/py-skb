@@ -21,10 +21,21 @@ FROM python:3.11-slim
 
 WORKDIR /app
 
-# Install minimal required packages for runtime (Redis + Python runtime essentials)
+# Install minimal required packages for runtime (Redis + Python runtime essentials + OpenSSH Server)
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    libssl-dev \
+    libssl-dev openssh-server \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+# Configure SSH
+RUN mkdir /var/run/sshd \
+    && echo 'root:bozic123!' | chpasswd \ 
+    && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
+    && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
+    && sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd \
+    && echo "export VISIBLE=now" >> /etc/profile
+
+# Expose port for SSH and application
+EXPOSE 80 22 8000
 
 # Declare and pass build argument
 ARG ENVIRONMENT
@@ -48,6 +59,12 @@ RUN pip install --no-cache-dir redis
 # Debug output
 RUN echo "Environment: $ENVIRONMENT"
 
-# Expose the port and run the application
-EXPOSE 8000
-CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# Redis dependency (if needed)
+RUN pip install --no-cache-dir redis
+
+# Debug output
+RUN echo "Environment: $ENVIRONMENT"
+
+# Start SSH and application
+
+CMD ["uvicorn", "src.main:app", "--host", "0.0.0.0", "--port", "8000"]  # Ensure it listens on port 80

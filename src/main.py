@@ -1,117 +1,84 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_limiter import FastAPILimiter
-import redis.asyncio as redis
-from redis.exceptions import TimeoutError, ConnectionError
 from src.config import Config
-from src.endpoints.add_document import router as add_document_router
-from src.endpoints.search import router as search_router
-from src.endpoints.rebuild_index import router as rebuild_index_router
-from src.endpoints.test_pinecone import router as test_pinecone_router
-from src.endpoints.test_redis import router as test_redis_router
-from src.endpoints.test_openai import router as test_openai_router
-from src.endpoints.test_config import router as test_config_router
-import asyncio
+from src.endpoints import (
+    add_document_router,
+    search_router,
+    rebuild_index_router,
+    test_pinecone_router,
+    test_redis_router,
+    test_openai_router,
+    test_config_router,
+)
+from src.utils.logger_config import AppLogger
+from src.utils.redis_manager import initialize_redis, shutdown_redis, get_redis_client
 
-# Load configuration
+app = FastAPI()
 config = Config()
 
-# Create the FastAPI app
-app = FastAPI()
-
-# Add CORS middleware
+# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=config.allowed_origins,  # Use allowed origins from Config
+    allow_origins=config.allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],  # Allow all HTTP methods
-    allow_headers=["*"],  # Allow all headers
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
-# Initialize Redis client globally
-redis_client = None
-
-# Optional: System information logging
-def print_system_info():
-    """
-    Prints system information such as OS, memory, and CPU usage.
-    Only called if debugging is enabled.
-    """
-    try:
-        import platform
-        import psutil  # Only import when needed (reduces unnecessary dependencies in prod)
-        print("\n=== System Information ===")
-        print(f"OS: {platform.system()} {platform.release()} ({platform.version()})")
-        print(f"Architecture: {platform.architecture()[0]}")
-        print(f"Processor: {platform.processor()}")
-        print(f"CPU Cores: {psutil.cpu_count(logical=False)} physical, {psutil.cpu_count(logical=True)} logical")
-        print(f"Memory: {round(psutil.virtual_memory().total / (1024 ** 3), 2)} GB total")
-        print(f"Free Memory: {round(psutil.virtual_memory().available / (1024 ** 3), 2)} GB")
-        print(f"Disk Usage: {psutil.disk_usage('/').percent}% used of {round(psutil.disk_usage('/').total / (1024 ** 3), 2)} GB")
-        print("==========================")
-    except ImportError:
-        print("System info utilities not available in this environment.")
-    except Exception as e:
-        print(f"Error printing system info: {e}")
-
-# Redis client with retry logic
-async def create_redis_client_with_retry(retries: int = 5, delay: int = 2):
-    """
-    Creates a Redis client with retry logic.
-    """
-    for attempt in range(retries):
-        try:
-            client = redis.Redis(
-                host=config.redis_host,
-                port=int(config.redis_port),
-                password=config.redis_access_key,
-                db=0,
-                decode_responses=True,
-                socket_connect_timeout=5,  # Connection timeout in seconds
-                retry_on_timeout=True,
-                ssl=True  # Enable SSL/TLS for secure Redis communication
-            )
-            await client.ping()  # Test connection
-            print(f"Connected to Redis on attempt {attempt + 1}")
-            return client
-        except (TimeoutError, ConnectionError) as e:
-            print(f"Redis connection attempt {attempt + 1} failed: {e}. Retrying in {delay} seconds...")
-            await asyncio.sleep(delay)
-    raise RuntimeError("Failed to connect to Redis after multiple retries. Check your Redis configuration.")
+# Logger
+app_logger = AppLogger()
+logger = app_logger.logger
 
 @app.on_event("startup")
 async def startup():
     """
-    Initialize Redis for rate limiting and other startup tasks.
+    Startup event for initializing Redis and logging.
     """
-    print("\nStarting FastAPI application...")
-
-    if config.debug_mode:  # Only print system info when in debug mode
-        print_system_info()
+    logger.info("************ Starting FastAPI application... ************")
+    app_logger.log_system_info()
     config.print_config()
 
-    global redis_client
-    try:
-        redis_client = await create_redis_client_with_retry()
-        await FastAPILimiter.init(redis_client)  # Initialize FastAPI rate limiting
-        print("FastAPI Limiter initialized successfully.")
-    except Exception as e:
-        print(f"Redis initialization failed: {e}")
-        raise RuntimeError("Redis initialization failed.")
+    await initialize_redis()
+    redis_client = get_redis_client()
+
+    await FastAPILimiter.init(redis_client)
+    logger.info("FastAPILimiter initialized successfully.")
+    logger.info("************ Startup tasks completed. ************")
+
+@app.on_event("shutdown")
+async def shutdown():
+    """
+    Shutdown event to close Redis connection.
+    """
+    await shutdown_redis()
+    logger.info("FastAPI application shutting down.")
 
 # Register routers
 app.include_router(add_document_router)
 app.include_router(search_router)
 app.include_router(rebuild_index_router)
-app.include_router(test_pinecone_router)  # Separate test-pinecone endpoint
-app.include_router(test_redis_router)  # Separate test-redis endpoint
-app.include_router(test_openai_router)  # Separate test-openai endpoint
-app.include_router(test_config_router)  # Separate test-config endpoint
+app.include_router(test_pinecone_router)
+app.include_router(test_redis_router)
+app.include_router(test_openai_router)
+app.include_router(test_config_router)
+
+@app.get("/health/redis")
+async def redis_health_check():
+    """
+    Health check endpoint for Redis connection.
+    """
+    redis_client = get_redis_client()
+    try:
+        await redis_client.ping()
+        return {"status": "Redis is healthy"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Redis error: {str(e)}")
 
 @app.get("/")
 async def read_root():
     """
-    Root endpoint to check if the application is running.
+    Root endpoint.
     """
     print("Root endpoint accessed.")
     return {"message": "Welcome to the Pinecone-Powered Knowledge Base!"}
@@ -119,18 +86,11 @@ async def read_root():
 @app.get("/health")
 async def health_check():
     """
-    Health check endpoint to ensure the app is running.
+    Health check for the app.
     """
     print("Health check endpoint accessed.")
     return {"status": "ok"}
 
-@app.on_event("shutdown")
-async def shutdown():
-    """
-    Cleanup tasks when the application shuts down.
-    """
-    global redis_client
-    if redis_client:
-        await redis_client.close()
-        print("Redis client connection closed.")
-    print("FastAPI application shutting down.")
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run(app, host="0.0.0.0", port=config.app_port)

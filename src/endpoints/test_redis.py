@@ -1,38 +1,20 @@
-import os
 from fastapi import APIRouter, HTTPException
-import redis.asyncio as redis
-from src.config import Config
+from src.utils.redis_manager import get_redis_client
+import logging
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
-config = Config()
-
-# Initialize Redis client globally
-redis_client = None
-
-@router.on_event("startup")
-async def initialize_redis():
-    """
-    Initialize the Redis client during application startup.
-    """
-    global redis_client
-    try:
-        redis_client = redis.from_url(f"redis://{config.redis_host}:6379", decode_responses=True)
-        # Test Redis connection
-        await redis_client.ping()
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Failed to initialize Redis: {str(e)}")
-
 
 @router.get("/test-redis")
-async def test_redis():
+async def test_redis_connection():
     """
-    Test connectivity to the Redis server.
+    Endpoint to test Redis connection.
     """
+    redis_client = get_redis_client()  # Get Redis client instance
     try:
-        if redis_client is None:
-            raise HTTPException(status_code=500, detail="Redis client is not initialized.")
-        
-        pong = await redis_client.ping()
-        return {"status": "success", "response": pong}
+        await redis_client.ping()
+        logger.info("Redis ping successful.")
+        return {"status": "connected", "message": "Redis ping successful!"}
     except Exception as e:
-        return {"status": "error", "details": str(e)}
+        logger.error(f"Redis ping failed: {e}")
+        raise HTTPException(status_code=500, detail=f"Redis ping failed: {str(e)}")

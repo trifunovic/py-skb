@@ -1,0 +1,33 @@
+fetch("http://127.0.0.1:8080/init-redis", {
+  "headers": {
+    "accept": "application/json",
+    "Content-Type": "application/json", // Ensures the body is passed as JSON
+    "accept-language": "en-US,en;q=0.9,hr;q=0.8",
+    "sec-ch-ua": "\"Google Chrome\";v=\"131\", \"Chromium\";v=\"131\", \"Not_A Brand\";v=\"24\"",
+    "sec-ch-ua-mobile": "?0",
+    "sec-ch-ua-platform": "\"Windows\"",
+    "sec-fetch-dest": "empty",
+    "sec-fetch-mode": "cors",
+    "sec-fetch-site": "same-origin",
+    "Authorization": "my-secure-api-key" // Replace with your actual API key if required
+  },
+  "referrer": "http://127.0.0.1:8080/docs",
+  "referrerPolicy": "strict-origin-when-cross-origin",
+  "method": "POST",
+  "mode": "cors",
+  "credentials": "omit",
+  "body": JSON.stringify({
+    "host": "redis",  // Docker Compose service name
+    "port": 6379,     // Local Redis default port
+    "password": "", // No password for local Redis
+    "ssl": false      // Disable SSL for local testing
+  })
+})
+  .then(response => {
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+    return response.json();
+  })
+  .then(data => console.log("Redis Initialization Response:", data))
+  .catch(error => console.error("Error:", error));
