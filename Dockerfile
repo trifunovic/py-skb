@@ -26,16 +26,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libssl-dev openssh-server \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Configure SSH
-RUN mkdir /var/run/sshd \
-    && echo 'root:bozic123!' | chpasswd \ 
-    && sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config \
-    && sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config \
-    && sed -i 's@session\s*required\s*pam_loginuid.so@session optional pam_loginuid.so@g' /etc/pam.d/sshd \
-    && echo "export VISIBLE=now" >> /etc/profile
 
 # Expose port for SSH and application
-EXPOSE 80 22 8000
+EXPOSE 80 2222 8000
 
 # Declare and pass build argument
 ARG ENVIRONMENT

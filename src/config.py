@@ -19,7 +19,7 @@ class Config:
                     return secret
             except RuntimeError as e:
                 print(f"Key Vault error for {secret_name}: {e}. Falling back to {fallback_env}.")
-        
+
         # Fallback to environment variables if Key Vault secret is not found
         env_value = os.getenv(fallback_env, default)
         if env_value:
@@ -75,7 +75,7 @@ class Config:
     @property
     def redis_use_ssl(self):
         return self._get_secret("redis-use-ssl", fallback_env="REDIS_USE_SSL", default="False").lower() in ["true", "1", "yes"]
-    
+
     @property
     def redis_access_key(self):
         return self._get_secret("redis-access-key", fallback_env="REDIS_ACCESS_KEY", default=None)
@@ -103,7 +103,7 @@ class Config:
     @property
     def log_level(self):
         return self._get_secret("log-level", fallback_env="LOG_LEVEL", default="info")
-    
+
     @property
     def app_port(self):
         return int(self._get_secret("app-port", fallback_env="APP_PORT", default="8000"))
@@ -117,9 +117,16 @@ class Config:
     def rate_limit_window_seconds(self):
         return int(self._get_secret("rate-limit-window-seconds", fallback_env="RATE_LIMIT_WINDOW_SECONDS", default="60"))
 
+    # **Search Configuration**
+    @property
+    def search_top_k(self):
+        # Retrieve the number of top results to return from environment variables or use a default value
+        return int(self._get_secret("search-top-k", fallback_env="SEARCH_TOP_K", default="5"))
+
+
     # **Print configuration values for debugging**
     def print_config(self):
-        print("\n==================== Loaded Configuration ======================")    
+        print("\n==================== Loaded Configuration ======================")
         print(f"APP Port: {self.app_port}")
         print(f"Azure Key Vault Name: {self._key_vault_name or 'Not Set'}")
         print(f"Redis Host: {self.redis_host}")
