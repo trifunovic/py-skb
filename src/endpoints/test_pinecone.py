@@ -11,22 +11,23 @@ async def test_pinecone():
     Test connectivity to the Pinecone service and list indexes.
     """
     try:
-        # Get Pinecone API key and environment from Config
+        # Get Pinecone credentials from Config
         api_key = config.pinecone_api_key
-        environment = config.pinecone_environment
-        if not api_key or not environment:
+        cloud = config.pinecone_cloud
+        region = config.pinecone_region
+
+        if not api_key or not cloud or not region:
             raise HTTPException(
                 status_code=500,
-                detail="Pinecone API key or environment is not set."
+                detail="Pinecone API key, region, or cloud is not set."
             )
-        
-        # Initialize Pinecone client
-        pc = Pinecone(api_key=api_key, environment=environment)
+
+        # Initialize Pinecone client (modern SDK v3+)
+        pc = Pinecone(api_key=api_key)
 
         # List indexes
         indexes = pc.list_indexes().names()
         return {"status": "success", "indexes": indexes}
-    
+
     except Exception as e:
-        # Return detailed error for debugging
         return {"status": "error", "details": str(e)}

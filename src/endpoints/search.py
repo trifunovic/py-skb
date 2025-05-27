@@ -6,14 +6,33 @@ from src.utils.pinecone_utils import get_pinecone_index
 from src.utils.logger_config import AppLogger
 from src.config import Config
 import traceback
+import openai
 
 # Configuration and logger
 config = Config()
 app_logger = AppLogger()
 logger = app_logger.logger
 
+openai.api_key = config.openai_api_key
 embedding_service = EmbeddingService()
 router = APIRouter()
+
+def call_openai_rag_prompt(context: str, query: str) -> str:
+    try:
+        prompt = f"Context:\n{context}\n\nQuestion: {query}\nAnswer:"
+        response = openai.ChatCompletion.create(
+            model=config.openai_model,
+            messages=[
+                {"role": "system", "content": "Answer as clearly and concisely as possible using the provided context."},
+                {"role": "user", "content": prompt}
+            ],
+            temperature=0.2,
+            max_tokens=100
+        )
+        return response.choices[0].message["content"].strip()
+    except Exception as e:
+        logger.error(f"OpenAI error: {str(e)}")
+        return "No answer generated."
 
 @router.get("/search/", dependencies=[Depends(RateLimiter(times=config.search_rate_limit, seconds=60))], response_class=JSONResponse)
 async def search(query: str, request: Request):
@@ -35,9 +54,9 @@ async def search(query: str, request: Request):
             {
                 "document_id": match.get("id", "unknown"),
                 "relevance_score": round(match.get("score", 0), 2),
-                "short_answer": embedding_service.refine_answer_based_on_query(
-                    query,
-                    embedding_service.extract_semantically_relevant_answer(match["metadata"].get("content", ""), query)
+                "short_answer": call_openai_rag_prompt(
+                    context=match["metadata"].get("content", ""),
+                    query=query
                 ),
                 "details": match["metadata"]
             }
@@ -46,6 +65,7 @@ async def search(query: str, request: Request):
 
         logger.info(f"Search results: {len(readable_results)} documents found.")
         return {"query": query, "results": readable_results}
+
     except Exception as e:
         if config.debug_mode:
             logger.error(f"Unhandled exception: {traceback.format_exc()}")

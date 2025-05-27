@@ -123,6 +123,11 @@ class Config:
         # Retrieve the number of top results to return from environment variables or use a default value
         return int(self._get_secret("search-top-k", fallback_env="SEARCH_TOP_K", default="5"))
 
+    @property
+    def pinecone_namespace(self):
+      return self._get_secret("pinecone-namespace", fallback_env="PINECONE_NAMESPACE", default="")
+
+
 
     # **Print configuration values for debugging**
     def print_config(self):
