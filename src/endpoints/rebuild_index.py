@@ -1,19 +1,19 @@
 from fastapi import APIRouter, HTTPException
-from src.services.embeding_service import EmbeddingService  # Relative import
-from src.utils.pinecone_utils import get_pinecone_index
+from src.services.vector_store_service import remove_all_documents, add_document
+from src.services.embeding_service import EmbeddingService
+from src.utils.logger_config import AppLogger
 import logging
 
-logger = logging.getLogger(__name__)
+logger = AppLogger().logger
 router = APIRouter()
 
-# Initialize the embedding service
 embedding_service = EmbeddingService()
 
 @router.post("/rebuild-index/")
 async def rebuild_index(documents: list[dict]):
     """
     Rebuild the Pinecone index with new documents.
-    This will delete the existing index and recreate it with the new data.
+    This will delete the existing namespace content and re-insert new data.
     """
     try:
         if not documents:
@@ -21,10 +21,9 @@ async def rebuild_index(documents: list[dict]):
 
         logger.info("Rebuilding Pinecone index...")
 
-        # Get or recreate the index
-        index = get_pinecone_index()
-        index.delete(delete_all=True)  # Clear existing data
-        logger.info("Existing index cleared.")
+        # Clear all data in current namespace
+        remove_all_documents()
+        logger.info("Existing namespace cleared.")
 
         # Process and add each document
         for doc in documents:
@@ -35,11 +34,7 @@ async def rebuild_index(documents: list[dict]):
             if not document_id or not content:
                 raise ValueError(f"Document with ID '{document_id}' is missing required fields.")
 
-            # Generate embedding using the centralized embedding service
-            embedding = embedding_service.generate_embedding(content).tolist()
-
-            # Upsert into the index
-            index.upsert([(document_id, embedding, metadata)])
+            add_document(document_id=document_id, text=content, metadata=metadata)
             logger.info(f"Document {document_id} added to the index.")
 
         logger.info("Index rebuilt successfully.")

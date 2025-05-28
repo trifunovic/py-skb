@@ -15,6 +15,7 @@ async def test_config():
         "pinecone_region": config.pinecone_region,
         "pinecone_cloud": config.pinecone_cloud,
         "pinecone_metric": config.pinecone_metric,
+        "pinecone_namespace": config.pinecone_namespace,
         "redis_host": config.redis_host,
         "allowed_origins": config.allowed_origins,
         "openai_model": config.openai_model,

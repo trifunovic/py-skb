@@ -6,6 +6,7 @@ class Config:
         # Load Key Vault name from environment variables (if defined)
         self._key_vault_name = os.getenv("AZURE_KEY_VAULT_NAME")
         self._secrets_service = SecretsService(key_vault_name=self._key_vault_name) if self._key_vault_name else None
+        self.search_top_k = int(os.getenv("SEARCH_TOP_K", 3))  # Default to 3 if not set
 
     def _get_secret(self, secret_name, fallback_env, default=None):
         """
@@ -19,7 +20,7 @@ class Config:
                     return secret
             except RuntimeError as e:
                 print(f"Key Vault error for {secret_name}: {e}. Falling back to {fallback_env}.")
-        
+
         # Fallback to environment variables if Key Vault secret is not found
         env_value = os.getenv(fallback_env, default)
         if env_value:
@@ -49,6 +50,10 @@ class Config:
     def pinecone_region(self):
         return self._get_secret("pinecone-region", fallback_env="PINECONE_REGION", default="us-east-1")
 
+    @property
+    def pinecone_namespace(self):
+        return self._get_secret("pinecone-namespace", fallback_env="PINECONE_NAMESPACE", default="default")
+
     # **OpenAI Configuration**
     @property
     def openai_api_key(self):
@@ -75,7 +80,7 @@ class Config:
     @property
     def redis_use_ssl(self):
         return self._get_secret("redis-use-ssl", fallback_env="REDIS_USE_SSL", default="False").lower() in ["true", "1", "yes"]
-    
+
     @property
     def redis_access_key(self):
         return self._get_secret("redis-access-key", fallback_env="REDIS_ACCESS_KEY", default=None)
@@ -103,7 +108,7 @@ class Config:
     @property
     def log_level(self):
         return self._get_secret("log-level", fallback_env="LOG_LEVEL", default="info")
-    
+
     @property
     def app_port(self):
         return int(self._get_secret("app-port", fallback_env="APP_PORT", default="8000"))
@@ -119,7 +124,7 @@ class Config:
 
     # **Print configuration values for debugging**
     def print_config(self):
-        print("\n==================== Loaded Configuration ======================")    
+        print("\n==================== Loaded Configuration ======================")
         print(f"APP Port: {self.app_port}")
         print(f"Azure Key Vault Name: {self._key_vault_name or 'Not Set'}")
         print(f"Redis Host: {self.redis_host}")
@@ -130,6 +135,7 @@ class Config:
         print(f"Pinecone Metric: {self.pinecone_metric}")
         print(f"Pinecone Cloud: {self.pinecone_cloud}")
         print(f"Pinecone Region: {self.pinecone_region}")
+        print(f"Pinecone Namesapce: {self.pinecone_namespace}")
         print(f"OpenAI API Key (masked): {'*' * len(self.openai_api_key) if self.openai_api_key else 'Not Set'}")
         print(f"OpenAI Model: {self.openai_model}")
         print(f"Knowledge API Key (masked): {'*' * len(self.knowledge_api_key) if self.knowledge_api_key else 'Not Set'}")
