@@ -5,8 +5,10 @@ from .test_pinecone import router as test_pinecone_router
 from .test_redis import router as test_redis_router
 from .test_openai import router as test_openai_router
 from .test_config import router as test_config_router
+from .list_documents import router as list_documents_router  # <-- popravljeno
 
 __all__ = [
+    "list_documents_router",
     "add_document_router",
     "search_router",
     "rebuild_index_router",

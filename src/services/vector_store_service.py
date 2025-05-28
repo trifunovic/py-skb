@@ -38,17 +38,8 @@ def remove_all_documents():
     index.delete(delete_all=True, namespace=config.pinecone_namespace)
 
 def list_all_document_ids() -> list[str]:
-    index = _get_index()
-    response = index.describe_index_stats(namespace=config.pinecone_namespace)
-    return list(response.get("namespaces", {}).get(config.pinecone_namespace, {}).get("vector_count", 0))
-
-def list_all_document_ids() -> list[str]:
-    index = _get_index()
-    stats = index.describe_index_stats(namespace=config.pinecone_namespace)
-    ns_info = stats.get("namespaces", {}).get(config.pinecone_namespace, {})
-    if not ns_info:
-        return []
-    # Pinecone ne vraća direktno ID-jeve → moraš da ih upišeš ili čuvaš odvojeno
-    raise NotImplementedError("Pinecone ne podržava listanje svih ID-jeva bez eksternog čuvanja.")
-
-
+    """
+    Pinecone ne podržava direktno listanje svih ID-jeva.
+    Potrebno je paralelno čuvanje ID-jeva u npr. Redis ili fajl.
+    """
+    raise NotImplementedError("Pinecone ne podržava direktno listanje svih ID-jeva — koristi eksterni storage.")

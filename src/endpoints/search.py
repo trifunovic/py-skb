@@ -32,18 +32,21 @@ async def search(query: str, request: Request):
         if not results.get("matches"):
             return {"query": query, "results": [], "warning": "No matching documents found."}
 
-        readable_results = [
-            {
-                "document_id": match.get("id", "unknown"),
-                "relevance_score": round(match.get("score", 0), 2),
-                "short_answer": embedding_service.refine_answer_based_on_query(
-                    query,
-                    embedding_service.extract_semantically_relevant_answer(match["metadata"].get("content", ""), query)
-                ),
-                "details": match["metadata"]
-            }
-            for match in results["matches"]
-        ]
+        readable_results = []
+        for match in results["matches"]:
+            metadata = getattr(match, "metadata", {}) or {}
+            content = metadata.get("content", "")
+            short_answer = embedding_service.refine_answer_based_on_query(
+                query,
+                embedding_service.extract_semantically_relevant_answer(content, query)
+            )
+
+            readable_results.append({
+                "document_id": getattr(match, "id", "unknown"),
+                "relevance_score": round(getattr(match, "score", 0), 2),
+                "short_answer": short_answer,
+                "details": metadata
+            })
 
         logger.info(f"Search results: {len(readable_results)} documents found.")
         return {"query": query, "results": readable_results}

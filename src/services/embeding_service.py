@@ -19,8 +19,15 @@ class EmbeddingService:
     def generate_embedding(self, content: str):
         """
         Generate embeddings for the given content.
+        Returns a list of floats suitable for Pinecone.
         """
-        return self.model.encode(content, convert_to_tensor=True)
+        return self.model.encode(content, convert_to_tensor=True).tolist()
+
+    def embed(self, content: str):
+        """
+        Alias for generate_embedding to support existing code expecting .embed().
+        """
+        return self.generate_embedding(content)
 
     def extract_semantically_relevant_answer(self, content: str, query: str):
         """
@@ -30,8 +37,8 @@ class EmbeddingService:
         if not sentences:
             return "No relevant content found."
 
-        query_embedding = self.generate_embedding(query)
-        sentence_embeddings = self.generate_embedding(sentences)
+        query_embedding = self.model.encode(query, convert_to_tensor=True)
+        sentence_embeddings = self.model.encode(sentences, convert_to_tensor=True)
         similarities = util.pytorch_cos_sim(query_embedding, sentence_embeddings)
         most_similar_idx = similarities.argmax().item()
 

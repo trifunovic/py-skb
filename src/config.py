@@ -3,15 +3,10 @@ import os
 
 class Config:
     def __init__(self):
-        # Load Key Vault name from environment variables (if defined)
         self._key_vault_name = os.getenv("AZURE_KEY_VAULT_NAME")
         self._secrets_service = SecretsService(key_vault_name=self._key_vault_name) if self._key_vault_name else None
-        self.search_top_k = int(os.getenv("SEARCH_TOP_K", 3))  # Default to 3 if not set
 
     def _get_secret(self, secret_name, fallback_env, default=None):
-        """
-        Retrieves secrets from Azure Key Vault or falls back to environment variables.
-        """
         if self._secrets_service:
             try:
                 secret = self._secrets_service.get_secret(secret_name, fallback_env=fallback_env)
@@ -21,7 +16,6 @@ class Config:
             except RuntimeError as e:
                 print(f"Key Vault error for {secret_name}: {e}. Falling back to {fallback_env}.")
 
-        # Fallback to environment variables if Key Vault secret is not found
         env_value = os.getenv(fallback_env, default)
         if env_value:
             print(f"Retrieved {fallback_env} from environment variables.")
@@ -29,7 +23,6 @@ class Config:
             print(f"Failed to retrieve {fallback_env}. Using default value if defined.")
         return env_value
 
-    # **Pinecone Configuration**
     @property
     def pinecone_api_key(self):
         return self._get_secret("pinecone-api-key", fallback_env="PINECONE_API_KEY")
@@ -54,7 +47,6 @@ class Config:
     def pinecone_namespace(self):
         return self._get_secret("pinecone-namespace", fallback_env="PINECONE_NAMESPACE", default="default")
 
-    # **OpenAI Configuration**
     @property
     def openai_api_key(self):
         return self._get_secret("openai-api-key", fallback_env="OPENAI_API_KEY")
@@ -63,12 +55,10 @@ class Config:
     def openai_model(self):
         return self._get_secret("openai-model", fallback_env="OPENAI_MODEL", default="gpt-3.5-turbo")
 
-    # **Knowledge API Configuration**
     @property
     def knowledge_api_key(self):
         return self._get_secret("knowledge-api-key", fallback_env="KNOWLEDGE_API_KEY")
 
-    # **Redis Configuration**
     @property
     def redis_host(self):
         return self._get_secret("redis-host", fallback_env="REDIS_HOST", default="redis")
@@ -85,13 +75,11 @@ class Config:
     def redis_access_key(self):
         return self._get_secret("redis-access-key", fallback_env="REDIS_ACCESS_KEY", default=None)
 
-    # **CORS Allowed Origins**
     @property
     def allowed_origins(self):
         allowed_origins = self._get_secret("allowed-origins", fallback_env="ALLOWED_ORIGINS", default="*")
         return allowed_origins.split(",")
 
-    # **Model Configuration**
     @property
     def model_name(self):
         return self._get_secret("model-name", fallback_env="MODEL_NAME", default="sentence-transformers/all-MiniLM-L6-v2")
@@ -100,7 +88,6 @@ class Config:
     def model_type(self):
         return self._get_secret("model-type", fallback_env="MODEL_TYPE", default="sentence-transformers")
 
-    # **Debugging and Logging**
     @property
     def debug_mode(self):
         return self._get_secret("debug", fallback_env="DEBUG", default="False").lower() in ["true", "1", "yes"]
@@ -113,7 +100,6 @@ class Config:
     def app_port(self):
         return int(self._get_secret("app-port", fallback_env="APP_PORT", default="8000"))
 
-    # **Rate Limiting Configuration**
     @property
     def search_rate_limit(self):
         return int(self._get_secret("search-rate-limit", fallback_env="SEARCH_RATE_LIMIT", default="10"))
@@ -122,19 +108,10 @@ class Config:
     def rate_limit_window_seconds(self):
         return int(self._get_secret("rate-limit-window-seconds", fallback_env="RATE_LIMIT_WINDOW_SECONDS", default="60"))
 
-    # **Search Configuration**
     @property
     def search_top_k(self):
-        # Retrieve the number of top results to return from environment variables or use a default value
         return int(self._get_secret("search-top-k", fallback_env="SEARCH_TOP_K", default="5"))
 
-    @property
-    def pinecone_namespace(self):
-      return self._get_secret("pinecone-namespace", fallback_env="PINECONE_NAMESPACE", default="")
-
-
-
-    # **Print configuration values for debugging**
     def print_config(self):
         print("\n==================== Loaded Configuration ======================")
         print(f"APP Port: {self.app_port}")
@@ -159,5 +136,4 @@ class Config:
         print(f"Search Rate Limit: {self.search_rate_limit} requests per {self.rate_limit_window_seconds} seconds")
         print("================================================================\n")
 
-# Instantiate config globally
 config = Config()
