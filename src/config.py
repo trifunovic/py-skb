@@ -122,6 +122,18 @@ class Config:
     def rate_limit_window_seconds(self):
         return int(self._get_secret("rate-limit-window-seconds", fallback_env="RATE_LIMIT_WINDOW_SECONDS", default="60"))
 
+    # **Search Configuration**
+    @property
+    def search_top_k(self):
+        # Retrieve the number of top results to return from environment variables or use a default value
+        return int(self._get_secret("search-top-k", fallback_env="SEARCH_TOP_K", default="5"))
+
+    @property
+    def pinecone_namespace(self):
+      return self._get_secret("pinecone-namespace", fallback_env="PINECONE_NAMESPACE", default="")
+
+
+
     # **Print configuration values for debugging**
     def print_config(self):
         print("\n==================== Loaded Configuration ======================")
