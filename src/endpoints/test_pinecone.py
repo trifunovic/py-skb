@@ -18,12 +18,20 @@ async def test_pinecone():
                 detail="Pinecone API key is not set."
             )
 
-        # Initialize Pinecone client (no environment param in v3)
+        # Pinecone Management API (v3+)
         pc = Pinecone(api_key=api_key)
+        indexes = pc.list_indexes()  # list of dicts
 
-        # List indexes (returns list of dicts)
-        indexes = [idx["name"] for idx in pc.list_indexes()]
-        return {"status": "success", "indexes": indexes}
+        return {
+            "status": "success",
+            "indexes": [idx["name"] for idx in indexes],
+            "index_details": indexes,
+            "project_name": pc.project_name,
+            "environment": pc.environment
+        }
 
     except Exception as e:
-        return {"status": "error", "details": str(e)}
+        return {
+            "status": "error",
+            "details": str(e)
+        }
