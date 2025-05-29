@@ -8,6 +8,7 @@ from src.utils.pinecone_utils import (
 )
 from src.config import Config
 from src.models.document import Document
+import json
 
 config = Config()
 embedding_service = EmbeddingService()
@@ -20,19 +21,28 @@ def _get_index():
     return _index
 
 def add_document(document_id: str, text: str, metadata: dict):
+    print("🔥 add_document() called!", flush=True)
+    print("🟡 before embedding:")
+    print({
+        "id": document_id,
+        "metadata": metadata
+    })
+
     embedding = embedding_service.embed(text)
     metadata = metadata.copy()
     metadata['content'] = text
     metadata['id'] = document_id
 
-    print("🟡 Payload to Pinecone:")
-    print({
+    payload = [{
         "id": document_id,
-        "values": embedding[:5],  # prikaz samo prvih 5 brojeva
+        "values": embedding,
         "metadata": metadata
-    })
+    }]
 
-    upsert_vector(_get_index(), [(document_id, embedding, metadata)])
+    print("📦 Payload sent to Pinecone:", flush=True)
+    print(json.dumps(payload, indent=2), flush=True)
+
+    _get_index().upsert(vectors=payload, namespace=config.pinecone_namespace)
 
 def insert_document(doc: Document):
     embedding = embedding_service.embed(doc.content)
@@ -78,9 +88,22 @@ def get_document(document_id: str):
     return fetch_vector(_get_index(), [document_id])
 
 def remove_all_documents():
+    print("🧨 remove_all_documents() called", flush=True)
     index = _get_index()
-    delete_vector(index, ids=[])
-    index.delete(delete_all=True, namespace=config.pinecone_namespace)
+
+    try:
+        print("🔸 Deleting vectors via delete_vector(ids=[])...", flush=True)
+        delete_vector(index, ids=[])
+    except Exception as e:
+        print("❌ delete_vector failed:", str(e), flush=True)
+
+    try:
+        print(f"🔸 Deleting namespace '{config.pinecone_namespace}'...", flush=True)
+        index.delete(delete_all=True, namespace=config.pinecone_namespace)
+        print("✅ Namespace deletion complete", flush=True)
+    except Exception as e:
+        print("❌ index.delete failed:", str(e), flush=True)
+        raise
 
 def list_all_document_ids() -> list[str]:
     raise NotImplementedError("Pinecone ne podržava direktno listanje svih ID-jeva — koristi eksterni storage.")
@@ -99,3 +122,31 @@ def get_all_documents(known_ids: list[str]) -> list[Document]:
         documents.append(Document(id=doc_id, content=content, metadata=metadata))
 
     return documents
+
+def add_documents_bulk(documents: list[Document]):
+    print(f"🟢 add_documents_bulk called with {len(documents)} documents", flush=True)
+    index = _get_index()
+
+    pinecone_payload = []
+
+    for doc in documents:
+        vector = embedding_service.embed(doc.content)
+        if not vector or not isinstance(vector, list) or not all(isinstance(x, float) for x in vector):
+            raise ValueError(f"❌ Invalid embedding for document '{doc.id}'.")
+
+        metadata = {str(k): str(v) for k, v in (doc.metadata or {}).items()}
+
+        metadata["content"] = doc.content
+        metadata["id"] = doc.id
+
+        pinecone_payload.append({
+            "id": doc.id,
+            "values": vector,
+            "metadata": metadata
+        })
+
+    print("🚨 FINAL BULK PAYLOAD ZA PINECONE:", flush=True)
+    print(json.dumps(pinecone_payload, indent=2), flush=True)
+
+    index.upsert(vectors=pinecone_payload, namespace=config.pinecone_namespace)
+    return [doc["id"] for doc in pinecone_payload]

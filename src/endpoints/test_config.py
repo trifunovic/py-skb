@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 from src.config import Config
 import os
+import pinecone
 
 router = APIRouter()
 config = Config()
@@ -16,6 +17,7 @@ async def test_config():
         "pinecone_cloud": config.pinecone_cloud,
         "pinecone_metric": config.pinecone_metric,
         "pinecone_namespace": config.pinecone_namespace,
+        "pinecone_client_version": pinecone.__version__,
         "redis_host": config.redis_host,
         "allowed_origins": config.allowed_origins,
         "openai_model": config.openai_model,
