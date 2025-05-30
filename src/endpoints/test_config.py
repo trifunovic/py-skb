@@ -28,4 +28,5 @@ async def test_config():
         "pinecone_api_key_present": bool(config.pinecone_api_key),
         "openai_api_key_present": bool(config.openai_api_key),
         "knowledge_api_key_present": bool(config.knowledge_api_key),
+        "backend_versiont": (config.backend_version),
     }

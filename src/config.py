@@ -112,6 +112,16 @@ class Config:
     def search_top_k(self):
         return int(self._get_secret("search-top-k", fallback_env="SEARCH_TOP_K", default="5"))
 
+    @property
+    def backend_version(self):
+        try:
+            version_file = os.path.join(os.path.dirname(__file__), "backend_version.txt")
+            with open(version_file, "r") as f:
+                return f.read().strip()
+        except Exception as e:
+            print(f"⚠️ Failed to read version file: {e}")
+            return "0.0.0"
+
     def print_config(self):
         print("\n==================== Loaded Configuration ======================")
         print(f"APP Port: {self.app_port}")
@@ -134,6 +144,7 @@ class Config:
         print(f"Debug Mode: {self.debug_mode}")
         print(f"Log Level: {self.log_level}")
         print(f"Search Rate Limit: {self.search_rate_limit} requests per {self.rate_limit_window_seconds} seconds")
+        print(f"BE version: {self.backend_version}")
         print("================================================================\n")
 
 config = Config()

@@ -10,7 +10,8 @@ from src.endpoints import (
     test_redis_router,
     test_openai_router,
     test_config_router,
-    list_documents_router
+    list_documents_router,
+    langchain_router
 )
 from src.utils.logger_config import AppLogger
 from src.utils.redis_manager import initialize_redis, shutdown_redis, get_redis_client
@@ -64,6 +65,7 @@ app.include_router(test_redis_router)
 app.include_router(test_openai_router)
 app.include_router(test_config_router)
 app.include_router(list_documents_router)
+app.include_router(langchain_router)
 
 @app.get("/health/redis")
 async def redis_health_check():
