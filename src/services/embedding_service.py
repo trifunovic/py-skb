@@ -52,3 +52,5 @@ class EmbeddingService:
         elif "why" in query_lower:
             return answer.split("because")[-1].strip() if "because" in answer else answer
         return answer
+
+embedding_service = EmbeddingService()

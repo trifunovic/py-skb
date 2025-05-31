@@ -16,6 +16,8 @@ from src.endpoints import (
 from src.utils.logger_config import AppLogger
 from src.utils.redis_manager import initialize_redis, shutdown_redis, get_redis_client
 from src.services.vector_store_service import ensure_index_exists
+from src.utils.print_config import print_config
+from src.services.embedding_service import embedding_service
 
 app = FastAPI()
 config = Config()
@@ -40,7 +42,7 @@ async def startup():
     """
     logger.info("************ Starting FastAPI application... ************")
     app_logger.log_system_info()
-    config.print_config()
+    print_config(config, embedding_service)
     ensure_index_exists()
 
     await initialize_redis()
@@ -61,13 +63,13 @@ async def shutdown():
 # Register routers
 app.include_router(add_document_router)
 app.include_router(search_router)
+app.include_router(langchain_router)
 app.include_router(rebuild_index_router)
 app.include_router(test_pinecone_router)
 app.include_router(test_redis_router)
 app.include_router(test_openai_router)
 app.include_router(test_config_router)
 app.include_router(list_documents_router)
-app.include_router(langchain_router)
 
 @app.get("/health/redis")
 async def redis_health_check():

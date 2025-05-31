@@ -28,3 +28,13 @@ class SearchResult(BaseModel):
 class SearchResponse(BaseResponse):
     query: str
     results: List[SearchResult]
+
+class RetrievedDocModel(BaseModel):
+    id: str
+    content: str
+    metadata: dict
+
+class AskResponseModel(BaseModel):
+    query: str
+    answer: str
+    retrieved_docs: Optional[List[RetrievedDocModel]]

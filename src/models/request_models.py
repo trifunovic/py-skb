@@ -18,5 +18,6 @@ class SearchRequest(BaseModel):
     query: str
     top_k: Optional[int] = 5
 
-class AskRequest(BaseModel):
+class AskRequestModel(BaseModel):
     question: str
+    top_k: Optional[int] = None
