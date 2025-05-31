@@ -1,31 +1,40 @@
 from langchain.chains import RetrievalQA
 from langchain.chat_models import ChatOpenAI
+from langchain.vectorstores import Pinecone
+from langchain.embeddings.openai import OpenAIEmbeddings
 from langchain.schema import Document
+import pinecone
+import os
 
-from src.services.vector_store_service import query_vector
-from src.services.embeding_service import EmbeddingService
+from src.config import Config
 
-class CustomRetriever:
-    def __init__(self, embedding_service: EmbeddingService, top_k: int = 3):
-        self.embedding_service = embedding_service
-        self.top_k = top_k
+# Učitaj konfiguraciju
+config = Config()
 
-    def get_relevant_documents(self, query: str) -> list[Document]:
-        embedding = self.embedding_service.embed(query)
-        results = query_vector(vector=embedding, top_k=self.top_k)
-        return [
-            Document(page_content=item["content"], metadata=item.get("metadata", {}))
-            for item in results
-        ]
+# Inicijalizuj Pinecone
+pinecone.init(api_key=config.pinecone_api_key, environment=config.pinecone_region)
+index = pinecone.Index(config.pinecone_index_name)
 
-embedding_service = EmbeddingService()
-retriever = CustomRetriever(embedding_service=embedding_service)
+# Embedding model
+embedding_model = OpenAIEmbeddings()
 
+# Kreiraj LangChain retriever iz Pinecone indeksa
+retriever = Pinecone(
+    index,  # Pinecone index objekat
+    embedding_model.embed_query,  # funkcija za kreiranje vektora iz query teksta
+    "content"  # polje koje sadrži glavni tekst u documentima
+).as_retriever(search_kwargs={"k": config.search_top_k})
+
+# Inicijalizuj LLM
+llm = ChatOpenAI(model="gpt-4", temperature=0)
+
+# Kreiraj QA chain
 qa_chain = RetrievalQA.from_chain_type(
-    llm=ChatOpenAI(model="gpt-4", temperature=0),
+    llm=llm,
     chain_type="stuff",
     retriever=retriever
 )
 
+# Ekspozuj funkciju
 def run_qa(question: str) -> str:
     return qa_chain.run(question)

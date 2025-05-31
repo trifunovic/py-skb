@@ -70,3 +70,5 @@ pinecone_debug.log
 # Project-specific files
 py-skb/.env.local
 py-skb/redis-data/dump.rdb
+
+.venv/
