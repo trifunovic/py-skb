@@ -72,3 +72,4 @@ py-skb/.env.local
 py-skb/redis-data/dump.rdb
 
 .venv/
+redis-data/dump.rdb
