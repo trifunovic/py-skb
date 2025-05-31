@@ -56,6 +56,10 @@ class Config:
         return self._get_secret("openai-model", fallback_env="OPENAI_MODEL", default="gpt-3.5-turbo")
 
     @property
+    def openai_embedding_model(self):
+      return self._get_secret("openai-embedding-model", fallback_env="OPENAI_EMBEDDING_MODEL", default="text-embedding-3-small")
+
+    @property
     def knowledge_api_key(self):
         return self._get_secret("knowledge-api-key", fallback_env="KNOWLEDGE_API_KEY")
 

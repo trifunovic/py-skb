@@ -2,7 +2,7 @@ from fastapi import APIRouter, HTTPException, Request, Depends
 from fastapi.responses import JSONResponse
 from fastapi_limiter.depends import RateLimiter
 from src.services.vector_store_service import search_similar, get_all_documents
-from src.services.embeding_service import EmbeddingService
+from src.services.embedding_service import EmbeddingService
 from src.utils.logger_config import AppLogger
 from src.config import Config
 from src.models.request_models import SearchRequest, IdsRequest

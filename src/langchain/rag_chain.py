@@ -1,31 +1,36 @@
-from langchain_community.vectorstores import Pinecone as LangchainPinecone
-from langchain_community.embeddings import OpenAIEmbeddings
-from langchain_community.chat_models import ChatOpenAI
+from langchain_community.vectorstores import Pinecone
 from langchain.chains import RetrievalQA
-from pinecone import Pinecone
+from langchain_openai import ChatOpenAI
 from src.config import Config
+from src.utils.pinecone_utils import get_pinecone_index
+from src.services.embedding_service import EmbeddingService
+import traceback
+from langchain_community.embeddings import HuggingFaceEmbeddings
 
 config = Config()
+embedding_service = EmbeddingService()
 
-# Novi način inicijalizacije Pinecone klijenta
-pc = Pinecone(api_key=config.pinecone_api_key, environment=config.pinecone_region)
-index = pc.Index(config.pinecone_index_name)
+# Use centralized embedding model (OpenAI or local)
+embedding_model = embedding_service.model
 
-embedding = OpenAIEmbeddings()
+# Load Pinecone index
+index = get_pinecone_index()
 
-vectorstore = LangchainPinecone(
-    index=index,
-    embedding=embedding,
-    text_key="content",
-    namespace=config.pinecone_namespace,
-)
+# Create vector store
+embedding = HuggingFaceEmbeddings(model_name=config.model_name)
+vectorstore = Pinecone(index, embedding, text_key="content", namespace=config.pinecone_namespace)
 
-retriever = vectorstore.as_retriever(search_kwargs={"k": config.search_top_k})
+# Setup retrieval chain
+llm = ChatOpenAI(model_name=config.openai_model, api_key=config.openai_api_key)
+qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=vectorstore.as_retriever())
 
-qa_chain = RetrievalQA.from_chain_type(
-    llm=ChatOpenAI(),
-    retriever=retriever
-)
-
-def run_qa(query: str) -> str:
-    return qa_chain.run(query)
+def run_rag_chain(query: str) -> str:
+    try:
+        print(f"🔍 Received query: {query}", flush=True)
+        result = qa_chain.invoke({"query": query})
+        print(f"✅ Chain result: {result}", flush=True)
+        return result
+    except Exception as e:
+        print("❌ RAG chain execution failed:", flush=True)
+        traceback.print_exc()
+        raise RuntimeError(f"RAG chain failed: {e}")

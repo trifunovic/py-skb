@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from src.services.vector_store_service import remove_all_documents, add_document
-from src.services.embeding_service import EmbeddingService
+from src.services.embedding_service import EmbeddingService
 from src.utils.logger_config import AppLogger
 from src.models.request_models import RebuildIndexRequest
 import json

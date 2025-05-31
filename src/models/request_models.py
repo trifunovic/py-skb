@@ -17,3 +17,6 @@ class BulkAddDocumentsRequest(BaseModel):
 class SearchRequest(BaseModel):
     query: str
     top_k: Optional[int] = 5
+
+class AskRequest(BaseModel):
+    question: str

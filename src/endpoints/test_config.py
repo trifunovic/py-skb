@@ -1,5 +1,6 @@
 from fastapi import APIRouter
 from src.config import Config
+from src.services.embedding_service import EmbeddingService
 import os
 import pinecone
 
@@ -8,6 +9,7 @@ config = Config()
 
 @router.get("/test-config")
 async def test_config():
+    embedding_service = EmbeddingService()
     """
     Test endpoint to display current application configuration variables.
     """
@@ -29,4 +31,7 @@ async def test_config():
         "openai_api_key_present": bool(config.openai_api_key),
         "knowledge_api_key_present": bool(config.knowledge_api_key),
         "backend_versiont": (config.backend_version),
+        "embedding_model_type": embedding_service.model_type,
+        "embedding_model_name": embedding_service.model_name,
+        "embedding_dimensions": embedding_service.dimensions,
     }

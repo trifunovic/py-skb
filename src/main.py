@@ -15,6 +15,7 @@ from src.endpoints import (
 )
 from src.utils.logger_config import AppLogger
 from src.utils.redis_manager import initialize_redis, shutdown_redis, get_redis_client
+from src.services.vector_store_service import ensure_index_exists
 
 app = FastAPI()
 config = Config()
@@ -40,6 +41,7 @@ async def startup():
     logger.info("************ Starting FastAPI application... ************")
     app_logger.log_system_info()
     config.print_config()
+    ensure_index_exists()
 
     await initialize_redis()
     redis_client = get_redis_client()

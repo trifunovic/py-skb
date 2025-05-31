@@ -1,4 +1,4 @@
-from src.services.embeding_service import EmbeddingService
+from src.services.embedding_service import EmbeddingService
 from src.utils.pinecone_utils import (
     get_pinecone_index,
     upsert_vector,
@@ -17,7 +17,7 @@ _index = None
 def _get_index():
     global _index
     if _index is None:
-        _index = get_pinecone_index(dimension=embedding_service.dimensions)
+        _index = get_pinecone_index()
     return _index
 
 def add_document(document_id: str, text: str, metadata: dict):
@@ -150,3 +150,32 @@ def add_documents_bulk(documents: list[Document]):
 
     index.upsert(vectors=pinecone_payload, namespace=config.pinecone_namespace)
     return [doc["id"] for doc in pinecone_payload]
+
+def ensure_index_exists():
+    from pinecone import Pinecone
+    from src.services.embedding_service import EmbeddingService
+    from src.config import Config
+
+    config = Config()
+    embedding = EmbeddingService()
+    pc = Pinecone(api_key=config.pinecone_api_key)
+
+    index_name = config.pinecone_index_name
+    existing_indexes = pc.list_indexes().names()
+
+    if index_name in existing_indexes:
+        index_description = pc.describe_index(index_name)
+        expected_dim = len(embedding.embed("test"))
+        actual_dim = index_description.dimension
+        if actual_dim != expected_dim:
+            raise ValueError(f"Dimension mismatch: index={actual_dim}, embedding={expected_dim}")
+        return
+
+    embedding_dim = len(embedding.embed("test"))
+    pc.create_index(
+        name=index_name,
+        dimension=embedding_dim,
+        metric=config.pinecone_metric,
+        cloud=config.pinecone_cloud,
+        pod_type="p1"
+    )
