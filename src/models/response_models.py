@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional, List
+from typing import Optional, List,Dict
 from src.models.document import Document
 
 class BaseResponse(BaseModel):
@@ -37,4 +37,10 @@ class RetrievedDocModel(BaseModel):
 class AskResponseModel(BaseModel):
     query: str
     answer: str
-    retrieved_docs: Optional[List[RetrievedDocModel]]
+    retrieved_docs: List[Dict]
+
+
+class ChatResponseModel(BaseModel):
+    answer: str
+    session_id: str
+    sources: Optional[List[Dict]] = []

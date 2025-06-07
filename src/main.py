@@ -12,9 +12,9 @@ from src.endpoints import (
     test_openai_router,
     test_config_router,
     list_documents_router,
-    langchain_router,
 )
-from src.endpoints.chat import router as chat_router  # 🔧 ispravno uključivanje
+from src.endpoints.chat import router as chat_router
+from src.endpoints.ask import router as ask_router
 from src.utils.logger_config import AppLogger
 from src.utils.redis_manager import initialize_redis, shutdown_redis, get_redis_client
 from src.services.vector_store_service import ensure_index_exists
@@ -24,7 +24,6 @@ from src.services.embedding_service import embedding_service
 app = FastAPI()
 config = Config()
 
-# CORS Middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=config.allowed_origins,
@@ -33,7 +32,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Logger
 app_logger = AppLogger()
 logger = app_logger.logger
 
@@ -59,14 +57,16 @@ async def shutdown():
 # Register routers
 app.include_router(add_document_router)
 app.include_router(search_router)
-app.include_router(langchain_router)
+app.include_router(ask_router)
+app.include_router(chat_router)
+
 app.include_router(rebuild_index_router)
+app.include_router(list_documents_router)
+
 app.include_router(test_pinecone_router)
 app.include_router(test_redis_router)
 app.include_router(test_openai_router)
 app.include_router(test_config_router)
-app.include_router(list_documents_router)
-app.include_router(chat_router)  # ✅ sada validan
 
 @app.get("/health/redis")
 async def redis_health_check():

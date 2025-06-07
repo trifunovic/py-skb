@@ -72,3 +72,4 @@ pinecone_debug.log
 
 # Project-specific files
 py-skb/.env.local
+tests/test.initredisprod.txt

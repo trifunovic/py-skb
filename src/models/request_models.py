@@ -1,5 +1,5 @@
 from pydantic import BaseModel, Field
-from typing import List, Optional
+from typing import List, Optional, Dict
 from src.models.document import Document
 
 class RebuildIndexRequest(BaseModel):
@@ -18,10 +18,11 @@ class SearchRequest(BaseModel):
     query: str
     top_k: Optional[int] = 5
 
+class ChatRequest(BaseModel):
+    session_id: Optional[str]
+    message: str
+
+
 class AskRequestModel(BaseModel):
     question: str
-    top_k: Optional[int] = None
-
-class ChatRequest(BaseModel):
-    session_id: Optional[str] = None
-    message: str
+    top_k: Optional[int] = 4

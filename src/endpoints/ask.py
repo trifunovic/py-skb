@@ -1,8 +1,8 @@
 from fastapi import APIRouter, HTTPException
 from src.models.request_models import AskRequestModel
 from src.models.response_models import AskResponseModel
-from src.langchain.rag_chain import run_rag_chain
-from src.config import config  # koristi već postojeći instancirani config
+from src.langchain.ask_chain import run_ask_chain
+from src.config import config
 
 router = APIRouter()
 
@@ -13,12 +13,7 @@ async def ask_question(payload: AskRequestModel):
 
     try:
         top_k = payload.top_k or config.search_top_k
-        result = run_rag_chain(payload.question, top_k=top_k)
-
-        print("🧠 Ask response preview:")
-        print(f"Query: {result['query']}")
-        print(f"Answer: {result['result']['result']}")
-        print(f"Retrieved docs: {len(result['retrieved_docs'])}", flush=True)
+        result = run_ask_chain(payload.question, top_k=top_k)
 
         return AskResponseModel(
             query=result["query"],
