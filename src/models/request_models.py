@@ -21,3 +21,7 @@ class SearchRequest(BaseModel):
 class AskRequestModel(BaseModel):
     question: str
     top_k: Optional[int] = None
+
+class ChatRequest(BaseModel):
+    session_id: Optional[str] = None
+    message: str

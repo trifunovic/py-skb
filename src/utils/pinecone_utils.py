@@ -1,10 +1,11 @@
-from pinecone import Pinecone, ServerlessSpec
+from pinecone import Pinecone as PineconeClient, ServerlessSpec
 from src.config import Config
 from src.services.embedding_service import EmbeddingService
 
 config = Config()
 embedding_service = EmbeddingService()
-pc = Pinecone(api_key=config.pinecone_api_key)
+pc = PineconeClient(api_key=config.pinecone_api_key)
+
 
 def get_pinecone_index():
     """
@@ -30,14 +31,18 @@ def get_pinecone_index():
 
     return pc.Index(index_name)
 
+
 def upsert_vector(index, vectors):
     return index.upsert(vectors=vectors, namespace=config.pinecone_namespace)
+
 
 def query_vector(index, vector, top_k=5):
     return index.query(vector=vector, top_k=top_k, namespace=config.pinecone_namespace)
 
+
 def delete_vector(index, ids):
     return index.delete(ids=ids, namespace=config.pinecone_namespace)
+
 
 def fetch_vector(index, ids):
     return index.fetch(ids=ids, namespace=config.pinecone_namespace)

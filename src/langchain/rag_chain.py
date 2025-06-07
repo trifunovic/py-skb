@@ -1,46 +1,49 @@
-from langchain_community.vectorstores import Pinecone
-from langchain.chains import RetrievalQA
-from langchain_openai import ChatOpenAI
-from langchain_community.embeddings import HuggingFaceEmbeddings
-from src.config import Config
+from langchain.chains import ConversationalRetrievalChain
+from langchain_community.chat_message_histories import RedisChatMessageHistory
+from langchain.memory import ConversationBufferMemory
+from langchain_openai import ChatOpenAI  # ✅ ispravno prema novoj verziji
+from langchain_pinecone import Pinecone  # ✅ novi wrapper
+
 from src.utils.pinecone_utils import get_pinecone_index
-from src.services.embedding_service import EmbeddingService
-import traceback
-from typing import Optional
+from src.services.embedding_service import embedding_service
+from src.config import Config
 
-config = Config()
-embedding_service = EmbeddingService()
 
-# Use centralized embedding model
-embedding_model = embedding_service.model
-embedding = HuggingFaceEmbeddings(model_name=config.model_name)
+def run_rag_chain(session_id: str, user_input: str):
+    config = Config()
 
-# Load Pinecone index
-index = get_pinecone_index()
-vectorstore = Pinecone(index, embedding, text_key="content", namespace=config.pinecone_namespace)
+    # Redis poruke
+    redis_url = f"redis://{config.redis_host}:{config.redis_port}"
+    history = RedisChatMessageHistory(session_id=session_id, url=redis_url)
+    memory = ConversationBufferMemory(
+      chat_memory=history,
+      return_messages=True,
+      memory_key="chat_history",
+      output_key="answer"  # ✅ eksplicitno navedeno šta da se sačuva
+    )
 
-# LLM instance
-llm = ChatOpenAI(model_name=config.openai_model, api_key=config.openai_api_key)
+    # Pinecone retriever
+    index = get_pinecone_index()
+    vectorstore = Pinecone(
+        index=index,
+        embedding=embedding_service,
+        text_key="content",
+        namespace=config.pinecone_namespace
+    )
+    retriever = vectorstore.as_retriever()
 
-def run_rag_chain(query: str, top_k: int) -> dict:
-    try:
-        print(f"🔍 Received query: {query}", flush=True)
+    # Conversational chain
+    chain = ConversationalRetrievalChain.from_llm(
+        llm=ChatOpenAI(temperature=0),
+        retriever=retriever,
+        memory=memory,
+        return_source_documents=True,
+        output_key="answer"  # ✅ važno!
+    )
 
-        retriever = vectorstore.as_retriever(search_kwargs={"k": top_k})
-        qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
+    result = chain.invoke({"question": user_input})
 
-        result = qa_chain.invoke({"query": query})
-        docs = retriever.get_relevant_documents(query)
-
-        return {
-            "query": query,
-            "result": result,
-            "retrieved_docs": [
-                {"id": d.metadata.get("id", "n/a"), "content": d.page_content, "metadata": d.metadata}
-                for d in docs
-            ]
-        }
-    except Exception as e:
-        print("❌ RAG chain execution failed:", flush=True)
-        traceback.print_exc()
-        raise RuntimeError(f"RAG chain failed: {e}")
+    return {
+        "answer": result["answer"],
+        "source_documents": [doc.metadata for doc in result.get("source_documents", [])]
+    }
